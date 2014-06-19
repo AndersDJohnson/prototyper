@@ -24,7 +24,7 @@ var componentDefs = {
   'placeholdit.image': {
     label: 'Placehold.it Image',
     construct: function () {
-      return $('<div><img src="http://placehold.it/200x150" /></div>');
+      return $('<img src="http://placehold.it/200x150" />');
     },
     draggables: ['*']
   }
