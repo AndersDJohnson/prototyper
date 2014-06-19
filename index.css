@@ -67,7 +67,7 @@ body {
   min-height: 20px;
 }
 
-.hover {
+[data-component].hover {
   border: 1px solid cyan;
 }
 

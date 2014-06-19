@@ -104,15 +104,19 @@ $(function () {
 
   $rootContainer.append($root);
 
+  // TODO: fix failure to trigger mouseenter/mouseleave events with fast mouse movement
 
-  $root.on('mouseenter', '*', function (e) {
-    e.stopPropagation();
-    $(e.target).addClass('hover');
+  $root.on('mouseenter', '[data-component]', function (e) {
+    var $target = $(e.target);
+    // var $components = $root.find('[data-component]');
+    // var $others = $components.not($target);
+    // $components.removeClass('hover');
+    $target.addClass('hover');
   });
 
-  $root.on('mouseleave', '*', function (e) {
-    e.stopPropagation();
-    $(e.target).removeClass('hover');
+  $root.on('mouseleave', '[data-component]', function (e) {
+    var $target = $(e.target);
+    $target.removeClass('hover');
   });
 
 
