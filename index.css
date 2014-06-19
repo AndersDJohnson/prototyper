@@ -1,0 +1,98 @@
+html {
+  height: 100%;
+}
+body {
+
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.clearfix:before,
+.clearfix:after {
+    content: "";
+    display: table;
+} 
+.clearfix:after {
+    clear: both;
+}
+.clearfix {
+    zoom: 1; /* For IE 6/7 (trigger hasLayout) */
+}
+
+.editor {
+  min-height: 200px;
+  border: 1px solid gray;
+  display: table;
+}
+
+.root-container {
+  position: relative;
+  display: table-cell;
+  vertical-align: top;
+  border: 1px solid blue;
+  height: 100%;
+  width: 75%;
+
+}
+
+[data-component][data-component="root"] {
+  /*
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  */
+  padding: 4px;
+
+  max-height: 200px;
+  overflow: auto;
+}
+
+[data-component] {
+  min-height: 10px;
+  position: relative;
+  z-index: 1;
+
+  border: 1px solid #ccc;
+  padding: 2px;
+}
+
+.dragging [data-component] {
+  border: 1px solid #ccc;
+  min-height: 20px;
+}
+
+.hover {
+  border: 1px solid cyan;
+}
+
+.dropover, .dragging [data-component].dropover {
+  border: 1px solid lime;
+}
+
+
+.controls {
+  display: table-cell;
+  width: 25%;
+  height: 100%;
+  border: 1px solid purple;
+}
+
+[data-component-control] {
+  border: 1px solid green;
+}
+
+
+.draggable-helper {
+  position: relative;
+}
+.draggable-helper .crosshairs {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+}
