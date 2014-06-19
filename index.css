@@ -54,7 +54,7 @@ body {
 }
 
 [data-component] {
-  min-height: 10px;
+  min-height: 12px;
   position: relative;
   z-index: 1;
 
@@ -108,4 +108,9 @@ body {
   position: absolute;
   top: -6px;
   left: -6px;
+}
+
+
+.footer {
+  padding: 12px;
 }
