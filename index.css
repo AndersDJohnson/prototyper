@@ -64,7 +64,8 @@ body {
 
 .dragging [data-component] {
   border: 1px solid #ccc;
-  min-height: 20px;
+  min-height: 24px;
+  padding: 4px;
 }
 
 [data-component].hover {
