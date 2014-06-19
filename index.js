@@ -24,7 +24,7 @@ var componentDefs = {
   'placeholdit.image': {
     label: 'Placehold.it Image',
     construct: function () {
-      return $('<img src="http://placehold.it/200x150" />');
+      return $('<div><img src="http://placehold.it/200x150" /></div>');
     },
     draggables: ['*']
   }
@@ -35,6 +35,8 @@ var prototyper = {};
 $(function () {
 
   var $body = $(document.body);
+
+  var dragging = false;
 
 
   var createComponent = function (id) {
@@ -104,19 +106,87 @@ $(function () {
 
   $rootContainer.append($root);
 
+
+  var showComponentUI = function ($component) {
+    var offset = $component.offset();
+    var width = $component.outerWidth();
+    var height = $component.outerHeight();
+
+    var $uiContainer = $('<div class="component-ui-container"><div class="component-ui"></div></div>');
+    var $ui = $uiContainer.find('.component-ui');
+    $uiContainer.css({
+      left: offset.left,
+      top: offset.top
+    });
+    $ui.width(width);
+    $ui.height(height);
+    $body.append($uiContainer);
+
+    var data = $component.data('component-data') || {};
+
+    if (data.id) {
+      console.log('ui for', data.id);
+    }
+    data.uiShowing = true;
+    data.$uiContainer = $uiContainer;
+    $component.data('component-data', data);
+
+    $uiContainer.one('mouseleave', function (e) {
+      hideComponentUI($component);
+    })
+  };
+
+  var hideComponentUI = function ($component) {
+    var data = $component.data('component-data') || {};
+    if (data.$uiContainer) {
+      data.uiShowing = false;
+      data.$uiContainer.remove();
+      data.$uiContainer = null;
+    }
+    $component.data('component-data', data);
+  };
+
+
   // TODO: fix failure to trigger mouseenter/mouseleave events with fast mouse movement
 
   $root.on('mouseenter', '[data-component]', function (e) {
+
+    if (dragging) {
+      return;
+    }
+
     var $target = $(e.target);
-    // var $components = $root.find('[data-component]');
-    // var $others = $components.not($target);
-    // $components.removeClass('hover');
-    $target.addClass('hover');
+    var $component = $target.closest('[data-component]');
+
+/*
+    var $components = $root.find('[data-component]');
+    var $others = $components.not($component);
+    $components.removeClass('hover');
+    $components.each(function (i, el) {
+      hideComponentUI($(el));
+    });
+    */
+
+    $component.addClass('hover');
+    // showComponentUI($component);
   });
 
   $root.on('mouseleave', '[data-component]', function (e) {
+
+    if (dragging) {
+      return;
+    }
+
     var $target = $(e.target);
-    $target.removeClass('hover');
+    var $component = $target.closest('[data-component]');
+
+
+    var data = $component.data('component-data') || {};
+    if (data.uiShowing) {
+      return false;
+    }
+    $component.removeClass('hover');
+    // hideComponentUI($component);
   });
 
 
@@ -182,6 +252,7 @@ $(function () {
     // console.log('dragstart', $target[0]);
     var data = $target.data('component-control-data');
     $body.addClass('dragging');
+    dragging = true;
   });
 
   $componentControls.on('drag', function (e, ui) {
@@ -190,6 +261,7 @@ $(function () {
 
   $componentControls.on('dragstop', function (e, ui) {
     $body.removeClass('dragging');
+    dragging = false;
   });
 
   update();

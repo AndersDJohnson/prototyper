@@ -68,11 +68,24 @@ body {
 }
 
 [data-component].hover {
-  border: 1px solid cyan;
+  /*border: 1px solid cyan;*/
+}
+
+[data-component="placeholdit.image"] img {
+  display: block;
+  margin: auto;
 }
 
 .dropover, .dragging [data-component].dropover {
   border: 1px solid lime;
+}
+
+
+.component-ui-container {
+  position: absolute;
+  z-index: 99;
+  border: 2px solid cyan;
+  /*box-sizing: content-box;*/
 }
 
 
