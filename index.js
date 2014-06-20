@@ -148,59 +148,64 @@ $(function () {
 
   var $highlightedBox;
   var $highlightedElement;
+  var $selectedBox;
+  var $selectedElement;
+
+
+  var setSelectedBox = function ($newSelectedElement) {
+
+    console.log('selecting box', $newSelectedElement[0]);
+
+    if ($newSelectedElement.is($selectedElement)) {
+      return false;
+    }
+
+    if ($selectedBox) {
+      unsetSelectedBox();
+    }
+
+    $selectedElement = $newSelectedElement;
+
+    var $box = $('<div class="selected-box"></div>');
+    $selectedBox = $box;
+    $box.hide(); 
+    $contextLayer.append($box);
+    drawSelectedBox();
+    $box.show();
+  };
+
+
+  var unsetSelectedBox = function () {
+    if ($selectedBox) {
+      $selectedBox.remove();
+    }
+  };
 
 
   var setHighlightedBox = function ($newHighlightedElement) {
 
-    if ($newHighlightedElement.is($highlightedElement)) {
+    if ($highlightedElement && $newHighlightedElement.is($highlightedElement)) {
       return false;
     }
 
-    $highlightedElement = $newHighlightedElement;
+    if ($selectedElement && $newHighlightedElement.is($selectedElement)) {
+      return false;
+    }
 
     if ($highlightedBox) {
       unsetHighlightedBox();
     }
+
+    $highlightedElement = $newHighlightedElement;
 
     // console.log('setHighlightedBox', $droppable[0]);
 
     var $box = $('<div class="highlighted-box"></div>');
     $highlightedBox = $box;
     $box.hide(); 
-    $rootContainer.append($box);
+    $contextLayer.append($box);
     drawHighlightedBox();
     $box.show();
-  };
-
-
-  var drawHighlightedBox = function () {
-
-    if ($highlightedBox && $highlightedElement) {
-
-      var rootOffset = $root.offset();
-      var highlightedElementOffset = $highlightedElement.offset();
-      var relativeOffset = {
-        top: highlightedElementOffset.top - rootOffset.top,
-        left: highlightedElementOffset.left - rootOffset.left
-      };
-      // console.log(relativeOffset.top, relativeOffset.left);
-      var width = $highlightedElement.outerWidth();
-      var height = $highlightedElement.outerHeight();
-
-      $highlightedBox.css({
-        left: relativeOffset.left,
-        top: relativeOffset.top,
-        width: width,
-        height: height
-      });
-
-    }
-
-  };
-
-
-  var drawBoxes = function () {
-    drawHighlightedBox();
   };
 
 
@@ -211,7 +216,71 @@ $(function () {
   };
 
 
+  var getBoxBounds = function ($el) {
+    var rootOffset = $root.offset();
+    var elOffset = $el.offset();
+    var relativeOffset = {
+      top: elOffset.top - rootOffset.top,
+      left: elOffset.left - rootOffset.left
+    };
+    var width = $el.outerWidth();
+    var height = $el.outerHeight();
+    return {
+      left: relativeOffset.left,
+      top: relativeOffset.top,
+      width: width,
+      height: height
+    };
+  };
+
+
+  var drawHighlightedBox = function () {
+
+    if ($highlightedBox && $highlightedElement) {
+
+      var boxBounds = getBoxBounds($highlightedElement);
+
+      $highlightedBox.css({
+        left: boxBounds.left,
+        top: boxBounds.top,
+        width: boxBounds.width,
+        height: boxBounds.height
+      });
+
+    }
+
+  };
+
+
+  var drawSelectedBox = function () {
+
+    if ($selectedBox && $selectedElement) {
+
+      var boxBounds = getBoxBounds($selectedElement);
+
+      $selectedBox.css({
+        left: boxBounds.left,
+        top: boxBounds.top,
+        width: boxBounds.width,
+        height: boxBounds.height
+      });
+
+    }
+
+  };
+
+
+  var drawBoxes = function () {
+    drawHighlightedBox();
+    drawSelectedBox();
+  };
+
+  var $displayContainer = $('.display-container');
   var $rootContainer = $('.root-container');
+
+  // var $contextLayer = $('<div class="context-layer"></div>');
+  // $rootContainer.append($contextLayer);
+  $contextLayer = $rootContainer;
 
   var $root = prototyper.root = createComponent('root');
 
@@ -223,9 +292,25 @@ $(function () {
   });
 
 
+  $rootContainer.on('click', '[data-component]', function (e) {
+    var $target = $(e.target);
+    var $this = $(this);
+    console.log('click');
+    e.stopPropagation();
+    if ($this.is('[data-component]')) {
+      setSelectedBox($this);
+    }
+  });
+
+
   // $rootContainer.on('mousemove', function (e) {
   $rootContainer.on('mousemove', '[data-component]', function (e) {
+
+    var $this = $(this);
     var $target = $(e.target);
+
+    console.log('$target', $target[0]);
+
     if ($target.is('[data-component]')) {
 
       $dropInto = $target;
@@ -243,7 +328,9 @@ $(function () {
     }
 
     var $closestComponent = $target.closest('[data-component]');
+    // var $closestComponent = $this.closest('[data-component]');
     if ($closestComponent.length) {
+      console.log('$closestComponent', $closestComponent[0]);
 
       if (! dragging) {
         setHighlightedBox($closestComponent);
@@ -384,7 +471,7 @@ $(function () {
   $componentControls.on('dragstop', function (e, ui) {
     dragging = false;
     $body.removeClass('dragging');
-    console.log('dragstop');
+    // console.log('dragstop');
     drawBoxes();
   });
 

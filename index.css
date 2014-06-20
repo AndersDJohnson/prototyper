@@ -27,21 +27,46 @@ body {
   display: table;
 }
 
+.display-container {
+  position: relative;
+  overflow: hidden;
+  display: table-cell;
+  vertical-align: top;
+  width: 75%;
+  height: 100%;
+  border: 1px solid blue;
+}
+
 .root-container {
   position: relative;
   overflow: hidden;
+  background: #eee;
 
-  display: table-cell;
-  vertical-align: top;
-  border: 1px solid blue;
   height: 100%;
-  width: 75%;
-
+  width: 100%;
 }
+
+/*
+.context-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  overflow: visible;
+}
+*/
 
 .highlighted-box {
   position: absolute;
+  /*z-index: 4;*/
   border: 2px solid cyan;
+}
+
+.selected-box {
+  position: absolute;
+  /*z-index: 2;*/
+  border: 2px solid lime;
 }
 
 [data-component][data-component="root"] {
