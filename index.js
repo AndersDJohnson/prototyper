@@ -167,6 +167,16 @@ $(function () {
     $selectedElement = $newSelectedElement;
 
     var $box = $('<div class="selected-box"></div>');
+    var $controls = $('<div class="selected-controls"></div>');
+    $box.append($controls);
+    $controls.append($('<button class="delete">x</button>'));
+
+    $controls.on('click', 'button.delete', function (e) {
+      $selectedElement.remove();
+      unsetSelectedBox();
+      unsetHighlightedBox();
+    });
+
     $selectedBox = $box;
     $box.hide(); 
     $contextLayer.append($box);
@@ -179,6 +189,8 @@ $(function () {
     if ($selectedBox) {
       $selectedBox.remove();
     }
+    $selectedBox = null;
+    $selectedElement = null;
   };
 
 
@@ -213,6 +225,8 @@ $(function () {
     if ($highlightedBox) {
       $highlightedBox.remove();
     }
+    $highlightedBox = null;
+    $highlightedElement = null;
   };
 
 

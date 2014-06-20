@@ -39,7 +39,7 @@ body {
 
 .root-container {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   background: #eee;
 
   height: 100%;
@@ -67,6 +67,19 @@ body {
   position: absolute;
   /*z-index: 2;*/
   border: 2px solid lime;
+  overflow: visible;
+}
+
+.selected-controls {
+  position: absolute;
+  z-index: 2;
+  top: 100%;
+  right: 0;
+  font-size: 10px;
+}
+.selected-controls button {
+  padding: 2px;
+  margin: 0;
 }
 
 [data-component][data-component="root"] {
