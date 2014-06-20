@@ -70,7 +70,11 @@ body {
   /*border: 1px solid cyan;*/
 }
 
-[data-component="placeholdit.image"] img {
+.placeholdit-image {
+  display: inline-block;
+}
+/*[data-component="placeholdit.image"] img {*/
+.placeholdit-image img {
   display: block;
   margin: auto;
 }

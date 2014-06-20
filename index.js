@@ -27,7 +27,15 @@ var componentDefs = {
   'placeholdit.image': {
     label: 'Placehold.it Image',
     construct: function () {
-      return $('<div><img src="http://placehold.it/200x150" /></div>');
+      return $('<div class="placeholdit-image"><img src="http://placehold.it/100x75" /></div>');
+    },
+    draggables: [],
+    droppables: ['*']
+  },
+  'placeholdit.image.2': {
+    label: 'Placehold.it Image 2',
+    construct: function () {
+      return $('<div class="placeholdit-image"><img src="http://placehold.it/50x50" /></div>');
     },
     draggables: [],
     droppables: ['*']
@@ -61,21 +69,20 @@ $(function () {
   var accept = function ($draggable, $droppable) {
     var draggableData = $draggable.data('component-control-data');
     var droppableData = $droppable.data('component-data');
-    console.log('$droppable', $droppable[0], droppableData);
-    console.log('$draggable', $draggable[0], draggableData);
+    // console.log('$droppable', $droppable[0], droppableData);
+    // console.log('$draggable', $draggable[0], draggableData);
     var draggables = droppableData.def.draggables || [];
     var droppables = draggableData.def.droppables || [];
     var allowDrag = _.any(draggables, function (id) {
       var accept = id === '*' || draggableData.id === id;
-      console.log(droppableData.id, 'drags', draggableData.id, '?', accept);
+      // console.log(droppableData.id, 'drags', draggableData.id, '?', accept);
       return accept;
     });
     var allowDrop = _.any(droppables, function (id) {
       var accept = id === '*' || droppableData.id === id;
-      console.log(draggableData.id, 'drops', droppableData.id, '?', accept);
+      // console.log(draggableData.id, 'drops', droppableData.id, '?', accept);
       return accept;
     });
-    // console.log(any);
     return allowDrag && allowDrop;
   };
 
@@ -84,7 +91,7 @@ $(function () {
 
     var data = $droppable.data('component-data');
 
-    console.log('setting up droppable', data);
+    // console.log('setting up droppable', data);
 
     $droppable.droppable({
       greedy: true, // false
@@ -100,7 +107,29 @@ $(function () {
       $target.removeClass('dropover');
       var componentId = ui.draggable.attr('data-component-control');
       var $component = createComponent(componentId);
-      $target.append($component);
+
+      if ($target.is($dropAround)) {
+        if (dropStrategy === 'before') {
+          $dropAround.prepend($component);
+        }
+        else if (dropStrategy === 'after') {
+          $dropAround.append($component);
+        }
+        else {
+          throw new Error('unknown drop strategy "' + dropStrategy + '"');
+        }
+      }
+      else {
+        if (dropStrategy === 'before') {
+          $dropAround.before($component);
+        }
+        else if (dropStrategy === 'after') {
+          $dropAround.after($component);
+        }
+        else {
+          throw new Error('unknown drop strategy "' + dropStrategy + '"');
+        }
+      }
 
       updateComponents();
       // drawBoxes();
@@ -112,24 +141,28 @@ $(function () {
 
   var $draggable;
 
+  var $dropInto;
+  var $dropAround;
+  var dropStrategy;
+
 
   var $highlightedBox;
   var $highlightedElement;
 
 
-  var setHighlightedBox = function ($droppable) {
+  var setHighlightedBox = function ($newHighlightedElement) {
 
-    if ($droppable.is($highlightedElement)) {
+    if ($newHighlightedElement.is($highlightedElement)) {
       return false;
     }
 
-    $highlightedElement = $droppable;
+    $highlightedElement = $newHighlightedElement;
 
     if ($highlightedBox) {
       unsetHighlightedBox();
     }
 
-    console.log('setHighlightedBox', $droppable[0]);
+    // console.log('setHighlightedBox', $droppable[0]);
 
     var $box = $('<div class="highlighted-box"></div>');
     $highlightedBox = $box;
@@ -138,6 +171,7 @@ $(function () {
     drawHighlightedBox();
     $box.show();
   };
+
 
   var drawHighlightedBox = function () {
 
@@ -164,9 +198,11 @@ $(function () {
 
   };
 
+
   var drawBoxes = function () {
     drawHighlightedBox();
   };
+
 
   var unsetHighlightedBox = function () {
     if ($highlightedBox) {
@@ -179,21 +215,93 @@ $(function () {
 
   var $root = prototyper.root = createComponent('root');
 
+  $rootContainer.append($root);
+
+
   $root.on('scroll', function (e) {
     drawBoxes();
   });
 
-  $rootContainer.append($root);
 
   // $rootContainer.on('mousemove', function (e) {
   $rootContainer.on('mousemove', '[data-component]', function (e) {
     var $target = $(e.target);
     if ($target.is('[data-component]')) {
-      var $droppable = $target;
-      if (accept($draggable, $droppable)) {
-        setHighlightedBox($droppable);
+
+      $dropInto = $target;
+
+      if (! $dropInto) {
+        return;
+      }
+
+      if (dragging && $draggable) {
+        if (accept($draggable, $dropInto)) {
+          setHighlightedBox($dropInto);
+        }
+      }
+
+    }
+
+    var $closestComponent = $target.closest('[data-component]');
+    if ($closestComponent.length) {
+
+      if (! dragging) {
+        setHighlightedBox($closestComponent);
+      }
+      else {
+
+        $dropAround = $closestComponent;
+
+        var offset = $closestComponent.offset();
+        var width = $closestComponent.outerWidth();
+        var height = $closestComponent.outerHeight();
+        var left = offset.left;
+        var top = offset.top;
+        var right = offset.left + width;
+        var bottom = offset.top + height;
+        var centerX = left + (width / 2);
+        var centerY = top + (height / 2);
+        var beforeX = e.pageX < centerX;
+        var beforeY = e.pageY < centerY;
+        // console.log([e.pageX, e.pageY],[left, top],[right, bottom]);
+        // console.log('before x', beforeX, 'y', beforeY);
+
+        var displayCSS = $closestComponent.css('display');
+        var floatCSS = $closestComponent.css('float');
+        // console.log(displayCSS, floatCSS);
+
+        var isInlineDisplay = function (css) {
+          return css === 'inline-block' || css === 'inline';
+        };
+        var isFloated = function (css) {
+          return css !== 'none';
+        };
+
+        if (isInlineDisplay(displayCSS) || isFloated(floatCSS)) {
+          if (beforeX) {
+            dropStrategy = 'before';
+          }
+          else {
+            dropStrategy = 'after';
+          }
+        }
+        else {
+          if (beforeY) {
+            dropStrategy = 'before';
+          }
+          else {
+            dropStrategy = 'after';
+          }
+        }
+        console.log('$dropAround', $dropAround[0]);
+        console.log('dropStrategy', dropStrategy);
+
+        // console.log('$dropAround', $dropAround[0]);
       }
     }
+
+    // closest...?
+
   });
 
 
@@ -223,6 +331,7 @@ $(function () {
 
 
   var $componentControlContainer = $('.component-control-container');
+
 
   $.each(componentDefs, function (id, def) {
 
@@ -254,15 +363,17 @@ $(function () {
     })
   });
 
+
   var $componentControls = $componentControlContainer.find('[data-component-control]');
 
+
   $componentControls.on('dragstart', function (e, ui) {
+    dragging = true;
     var $target = $(e.target);
     $draggable = $target;
     // console.log('dragstart', $draggable[0]);
     var data = $draggable.data('component-control-data');
     $body.addClass('dragging');
-    dragging = true;
     drawBoxes();
   });
 
@@ -271,11 +382,12 @@ $(function () {
   });
 
   $componentControls.on('dragstop', function (e, ui) {
-    $body.removeClass('dragging');
     dragging = false;
+    $body.removeClass('dragging');
     console.log('dragstop');
     drawBoxes();
   });
+
 
   updateComponents();
 
