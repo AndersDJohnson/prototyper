@@ -29,6 +29,8 @@ body {
 
 .root-container {
   position: relative;
+  overflow: hidden;
+
   display: table-cell;
   vertical-align: top;
   border: 1px solid blue;
@@ -37,16 +39,12 @@ body {
 
 }
 
-[data-component][data-component="root"] {
-  /*
+.highlighted-box {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  */
+  border: 2px solid cyan;
+}
+
+[data-component][data-component="root"] {
   padding: 4px;
 
   max-height: 400px;
@@ -65,7 +63,7 @@ body {
 .dragging [data-component] {
   border: 1px solid #ccc;
   min-height: 24px;
-  padding: 4px;
+  padding: 8px;
 }
 
 [data-component].hover {

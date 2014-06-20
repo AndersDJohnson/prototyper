@@ -1,4 +1,5 @@
 
+
 var componentDefs = {
   'root': {
     hidden: true,
@@ -12,27 +13,33 @@ var componentDefs = {
     construct: function () {
       return $('<div class="row"></div>');
     },
-    draggables: ['zurb-foundation-5.column']
+    draggables: ['zurb-foundation-5.column'],
+    droppables: ['*']
   },
   'zurb-foundation-5.column': {
     label: 'Column',
     construct: function () {
       return $('<div class="column medium-6"></div>');
     },
-    draggables: ['*']
+    draggables: ['*'],
+    droppables: ['zurb-foundation-5.row']
   },
   'placeholdit.image': {
     label: 'Placehold.it Image',
     construct: function () {
       return $('<div><img src="http://placehold.it/200x150" /></div>');
     },
-    draggables: ['*']
+    draggables: [],
+    droppables: ['*']
   }
 };
 
+
 var prototyper = {};
 
+
 $(function () {
+
 
   var $body = $(document.body);
 
@@ -51,52 +58,120 @@ $(function () {
   };
 
 
+  var accept = function ($draggable, $droppable) {
+    var draggableData = $draggable.data('component-control-data');
+    var droppableData = $droppable.data('component-data');
+    console.log('$droppable', $droppable[0], droppableData);
+    console.log('$draggable', $draggable[0], draggableData);
+    var draggables = droppableData.def.draggables || [];
+    var droppables = draggableData.def.droppables || [];
+    var allowDrag = _.any(draggables, function (id) {
+      var accept = id === '*' || draggableData.id === id;
+      console.log(droppableData.id, 'drags', draggableData.id, '?', accept);
+      return accept;
+    });
+    var allowDrop = _.any(droppables, function (id) {
+      var accept = id === '*' || droppableData.id === id;
+      console.log(draggableData.id, 'drops', droppableData.id, '?', accept);
+      return accept;
+    });
+    // console.log(any);
+    return allowDrag && allowDrop;
+  };
+
+
   var setupDroppable = function ($droppable) {
 
     var data = $droppable.data('component-data');
 
     console.log('setting up droppable', data);
 
-      $droppable.droppable({
-        greedy: true, // false
-        accept: function ($draggable) {
-          var draggableData = $draggable.data('component-control-data');
-          var $droppable = $(this);
-          var droppableData = $droppable.data('component-data');
-          // console.log('$droppable', $droppable[0], droppableData);
-          // console.log('$draggable', $draggable[0], draggableData);
-          var any = _.any(droppableData.def.draggables, function (id) {
-            var accept = id === '*' || draggableData.id === id;
-            // console.log(droppableData.id, 'accepts', draggableData.id, '?', accept);
-            return accept;
-          });
-          // console.log(any);
-          return any;
-        }
+    $droppable.droppable({
+      greedy: true, // false
+      accept: function ($draggable) {
+        var $droppable = $(this);
+        return accept($draggable, $droppable);
+      }
+    });
+
+    $droppable.on('drop', function (e, ui) {
+      e.stopPropagation();
+      var $target = $(e.target);
+      $target.removeClass('dropover');
+      var componentId = ui.draggable.attr('data-component-control');
+      var $component = createComponent(componentId);
+      $target.append($component);
+
+      updateComponents();
+      // drawBoxes();
+    });
+
+
+  };
+
+
+  var $draggable;
+
+
+  var $highlightedBox;
+  var $highlightedElement;
+
+
+  var setHighlightedBox = function ($droppable) {
+
+    if ($droppable.is($highlightedElement)) {
+      return false;
+    }
+
+    $highlightedElement = $droppable;
+
+    if ($highlightedBox) {
+      unsetHighlightedBox();
+    }
+
+    console.log('setHighlightedBox', $droppable[0]);
+
+    var $box = $('<div class="highlighted-box"></div>');
+    $highlightedBox = $box;
+    $box.hide(); 
+    $rootContainer.append($box);
+    drawHighlightedBox();
+    $box.show();
+  };
+
+  var drawHighlightedBox = function () {
+
+    if ($highlightedBox && $highlightedElement) {
+
+      var rootOffset = $root.offset();
+      var highlightedElementOffset = $highlightedElement.offset();
+      var relativeOffset = {
+        top: highlightedElementOffset.top - rootOffset.top,
+        left: highlightedElementOffset.left - rootOffset.left
+      };
+      // console.log(relativeOffset.top, relativeOffset.left);
+      var width = $highlightedElement.outerWidth();
+      var height = $highlightedElement.outerHeight();
+
+      $highlightedBox.css({
+        left: relativeOffset.left,
+        top: relativeOffset.top,
+        width: width,
+        height: height
       });
 
-      $droppable.on('dropover', function (e, ui) {
-        e.stopPropagation();
-        var $target = $(e.target);
-        var data = $target.data('component-data');
-        console.log('dropover data', data);
-        $target.addClass('dropover');
-      });
+    }
 
-      $droppable.on('dropout', function (e, ui) {
-        e.stopPropagation();
-        $(e.target).removeClass('dropover');
-      });
+  };
 
-      $droppable.on('drop', function (e, ui) {
-        e.stopPropagation();
-        var $target = $(e.target);
-        $target.removeClass('dropover');
-        var componentId = ui.draggable.attr('data-component-control');
-        var $component = createComponent(componentId);
-        $target.append($component);
-        update();
-      });
+  var drawBoxes = function () {
+    drawHighlightedBox();
+  };
+
+  var unsetHighlightedBox = function () {
+    if ($highlightedBox) {
+      $highlightedBox.remove();
+    }
   };
 
 
@@ -104,89 +179,21 @@ $(function () {
 
   var $root = prototyper.root = createComponent('root');
 
-  $rootContainer.append($root);
-
-
-  var showComponentUI = function ($component) {
-    var offset = $component.offset();
-    var width = $component.outerWidth();
-    var height = $component.outerHeight();
-
-    var $uiContainer = $('<div class="component-ui-container"><div class="component-ui"></div></div>');
-    var $ui = $uiContainer.find('.component-ui');
-    $uiContainer.css({
-      left: offset.left,
-      top: offset.top
-    });
-    $ui.width(width);
-    $ui.height(height);
-    $body.append($uiContainer);
-
-    var data = $component.data('component-data') || {};
-
-    if (data.id) {
-      console.log('ui for', data.id);
-    }
-    data.uiShowing = true;
-    data.$uiContainer = $uiContainer;
-    $component.data('component-data', data);
-
-    $uiContainer.one('mouseleave', function (e) {
-      hideComponentUI($component);
-    })
-  };
-
-  var hideComponentUI = function ($component) {
-    var data = $component.data('component-data') || {};
-    if (data.$uiContainer) {
-      data.uiShowing = false;
-      data.$uiContainer.remove();
-      data.$uiContainer = null;
-    }
-    $component.data('component-data', data);
-  };
-
-
-  // TODO: fix failure to trigger mouseenter/mouseleave events with fast mouse movement
-
-  $root.on('mouseenter', '[data-component]', function (e) {
-
-    if (dragging) {
-      return;
-    }
-
-    var $target = $(e.target);
-    var $component = $target.closest('[data-component]');
-
-/*
-    var $components = $root.find('[data-component]');
-    var $others = $components.not($component);
-    $components.removeClass('hover');
-    $components.each(function (i, el) {
-      hideComponentUI($(el));
-    });
-    */
-
-    $component.addClass('hover');
-    // showComponentUI($component);
+  $root.on('scroll', function (e) {
+    drawBoxes();
   });
 
-  $root.on('mouseleave', '[data-component]', function (e) {
+  $rootContainer.append($root);
 
-    if (dragging) {
-      return;
-    }
-
+  // $rootContainer.on('mousemove', function (e) {
+  $rootContainer.on('mousemove', '[data-component]', function (e) {
     var $target = $(e.target);
-    var $component = $target.closest('[data-component]');
-
-
-    var data = $component.data('component-data') || {};
-    if (data.uiShowing) {
-      return false;
+    if ($target.is('[data-component]')) {
+      var $droppable = $target;
+      if (accept($draggable, $droppable)) {
+        setHighlightedBox($droppable);
+      }
     }
-    $component.removeClass('hover');
-    // hideComponentUI($component);
   });
 
 
@@ -195,7 +202,8 @@ $(function () {
   });
 
 
-  var update = function () {
+  var updateComponents = function () {
+
     var $droppables = $root.find('[data-component]');
 
     $droppables.each(function (i, el) {
@@ -210,6 +218,7 @@ $(function () {
 
       setupDroppable($droppable);
     });
+
   };
 
 
@@ -249,10 +258,12 @@ $(function () {
 
   $componentControls.on('dragstart', function (e, ui) {
     var $target = $(e.target);
-    // console.log('dragstart', $target[0]);
-    var data = $target.data('component-control-data');
+    $draggable = $target;
+    // console.log('dragstart', $draggable[0]);
+    var data = $draggable.data('component-control-data');
     $body.addClass('dragging');
     dragging = true;
+    drawBoxes();
   });
 
   $componentControls.on('drag', function (e, ui) {
@@ -262,8 +273,10 @@ $(function () {
   $componentControls.on('dragstop', function (e, ui) {
     $body.removeClass('dragging');
     dragging = false;
+    console.log('dragstop');
+    drawBoxes();
   });
 
-  update();
+  updateComponents();
 
 });
