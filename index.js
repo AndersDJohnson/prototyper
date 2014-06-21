@@ -372,6 +372,18 @@ $(function () {
   };
 
 
+  var getBoundingBoxRelativeTo = function ($el, $rel) {
+    var elBox = getBoundingBox($el);
+    var relBox = getBoundingBox($rel);
+    return $.extend({}, elBox, {
+      left: elBox.left - relBox.left,
+      top: elBox.top - relBox.top,
+      right: elBox.right - relBox.right,
+      bottom: elBox.bottom - relBox.bottom
+    });
+  };
+
+
   var drawHighlightedBox = function () {
 
     if ($highlightedBox && $highlightedElement) {
@@ -389,24 +401,12 @@ $(function () {
 
   };
 
-  var getBoundingBoxRelativeTo = function ($el, $rel) {
-    var elBox = getBoundingBox($el);
-    var relBox = getBoundingBox($rel);
-    return $.extend({}, elBox, {
-      left: elBox.left - relBox.left,
-      top: elBox.top - relBox.top,
-      right: elBox.right - relBox.right,
-      bottom: elBox.bottom - relBox.bottom
-    });
-  };
-
 
   var drawSelectedBox = function () {
 
     if ($selectedBox && $selectedElement) {
 
       var bbox = getBoundingBoxRelativeTo($selectedElement, $root);
-      console.log(bbox);
 
       $selectedBox.css({
         left: bbox.left,
