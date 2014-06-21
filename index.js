@@ -296,7 +296,7 @@ $(function () {
     $controls.on('click', 'button.delete', function (e) {
       $selectedElement.remove();
       unsetSelectedElement();
-      unsetHighlightedBox();
+      unsetHighlightedElement();
     });
 
     $selectedBox = $box;
@@ -317,7 +317,7 @@ $(function () {
   };
 
 
-  var setHighlightedBox = function ($newHighlightedElement) {
+  var setHighlightedElement = function ($newHighlightedElement) {
 
     if ($highlightedElement && $newHighlightedElement.is($highlightedElement)) {
       return false;
@@ -328,12 +328,12 @@ $(function () {
     }
 
     if ($highlightedBox) {
-      unsetHighlightedBox();
+      unsetHighlightedElement();
     }
 
     $highlightedElement = $newHighlightedElement;
 
-    // console.log('setHighlightedBox', $droppable[0]);
+    // console.log('unsetHighlightedElement', $droppable[0]);
 
     var $box = $('<div class="highlighted-box"></div>');
     $highlightedBox = $box;
@@ -344,7 +344,7 @@ $(function () {
   };
 
 
-  var unsetHighlightedBox = function () {
+  var unsetHighlightedElement = function () {
     if ($highlightedBox) {
       $highlightedBox.remove();
     }
@@ -372,29 +372,11 @@ $(function () {
   };
 
 
-  var getBoxBounds = function ($el) {
-    var rootOffset = $root.offset();
-    var elOffset = $el.offset();
-    var relativeOffset = {
-      top: elOffset.top - rootOffset.top,
-      left: elOffset.left - rootOffset.left
-    };
-    var width = $el.outerWidth();
-    var height = $el.outerHeight();
-    return {
-      left: relativeOffset.left,
-      top: relativeOffset.top,
-      width: width,
-      height: height
-    };
-  };
-
-
   var drawHighlightedBox = function () {
 
     if ($highlightedBox && $highlightedElement) {
 
-      var boxBounds = getBoxBounds($highlightedElement);
+      var boxBounds = getBoundingBox($highlightedElement);
 
       $highlightedBox.css({
         left: boxBounds.left,
@@ -407,20 +389,30 @@ $(function () {
 
   };
 
+  var getBoundingBoxRelativeTo = function ($el, $rel) {
+    var elBox = getBoundingBox($el);
+    var relBox = getBoundingBox($rel);
+    return $.extend({}, elBox, {
+      left: elBox.left - relBox.left,
+      top: elBox.top - relBox.top,
+      right: elBox.right - relBox.right,
+      bottom: elBox.bottom - relBox.bottom
+    });
+  };
+
 
   var drawSelectedBox = function () {
 
     if ($selectedBox && $selectedElement) {
 
-      var boxBounds = getBoxBounds($selectedElement);
-      // console.log('boxBounds', boxBounds);
-      // console.log('$selectedBox', $selectedBox[0]);
+      var bbox = getBoundingBoxRelativeTo($selectedElement, $root);
+      console.log(bbox);
 
       $selectedBox.css({
-        left: boxBounds.left,
-        top: boxBounds.top,
-        width: boxBounds.width,
-        height: boxBounds.height
+        left: bbox.left,
+        top: bbox.top,
+        width: bbox.width,
+        height: bbox.height
       });
 
     }
@@ -478,7 +470,10 @@ $(function () {
   };
 
 
-  var addDraggability = function ($draggability) {
+  var addDraggability = function ($draggability, options) {
+
+    options = $.extend(options, {
+    });
 
     $draggability.css('position', 'relative');
 
@@ -487,6 +482,10 @@ $(function () {
 
       var $target = $(e.target);
       var $closest = $target.closest('[data-component]');
+
+      if (options.onMouseMove) {
+        options.onMouseMove($closest);
+      }
 
       if ($insertParent) {
         $insertParent.removeClass('insert-parent');
@@ -557,7 +556,11 @@ $(function () {
   };
 
 
-  addDraggability($root);
+  addDraggability($root, {
+    onMouseMove: function ($el) {
+      setHighlightedElement($el);
+    }
+  });
 
 
   $rootContainer.on('click', '[data-component]', function (e) {
