@@ -149,6 +149,7 @@ $(function () {
 
       $el.on('mousedown', function (e) {
         // console.log('mousedown');
+        e.stopPropagation();
         console.log('reselect', $el[0], $selectedElement);
         if ($selectedElement && $el.is($selectedElement)) {
           $reselectElement = $el;
