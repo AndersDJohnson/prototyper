@@ -171,13 +171,24 @@ $(function () {
 
 
   $(document).on('mouseup click', function (e) {
+
     if (dragging) {
+
+      var $target = $(e.target);
+
+      if (! $target.closest($root).length) {
+        $draggable.remove();
+      }
+
       unsetDragging();
+
       if ($reselectElement) {
         setSelectedElement($reselectElement);
       }
+
       bindDraggables($root);
     }
+
   });
 
 
