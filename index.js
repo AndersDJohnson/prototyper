@@ -176,9 +176,11 @@ $(function () {
 
       var $target = $(e.target);
 
+      /*
       if (! $target.closest($root).length) {
-        $draggable.remove();
+        $draggable.detach();
       }
+      */
 
       unsetDragging();
 
@@ -491,7 +493,7 @@ $(function () {
     // remove draggable on mouseleave
     $draggability.on('mouseleave', function (e) {
       if (dragging) {
-        $draggable.remove();
+        $draggable.detach();
       }
     });
 
