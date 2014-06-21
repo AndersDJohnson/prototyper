@@ -79,12 +79,14 @@ body.is-dragging {
 }
 
 [data-component="span"] {
+  /*
   display: inline-block;
   background: #ddd;
   border: 1px solid #ccc;
   margin: 4px;
   padding: 4px;
   min-height: 8px;
+  */
 }
 
 

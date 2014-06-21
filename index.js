@@ -1,89 +1,94 @@
 
-
-var componentDefs = {
-  'root': {
-    label: 'Root',
-    hidden: true,
-    construct: function () {
-      return $('<div></div>');
-    },
-    draggables: ['*']
-  },
-  'div': {
-    label: 'Div',
-    construct: function () {
-      return $('<div></div>');
-    },
-    draggables: ['*']
-  },
-  'span': {
-    label: 'Span',
-    construct: function (params) {
-      params = $.extend({
-        text: 'Span'
-      }, params);
-      return $('<span>' + params.text + '</span>');
-    },
-    draggables: ['*']
-  },
-  'zurb-foundation-5.row': {
-    label: 'Row',
-    construct: function () {
-      return $('<div class="row"></div>');
-    },
-    draggables: ['zurb-foundation-5.column'],
-    droppables: ['*']
-  },
-  'zurb-foundation-5.column': {
-    label: 'Column',
-    construct: function () {
-      return $('<div class="column medium-6"></div>');
-    },
-    draggables: ['*'],
-    droppables: ['zurb-foundation-5.row']
-  },
-  'zurb-foundation-5.button': {
-    label: 'Button',
-    construct: function () {
-      return $('<button>Button</button>');
-    },
-    draggables: [],
-    droppables: ['*']
-  },
-  'placeholdit.image': {
-    label: 'Placehold.it Image',
-    construct: function () {
-      var $img = $('<img src="http://placehold.it/100x75" />');
-      // prevent image source drag
-      $img.on('dragstart', function (e) {
-        e.preventDefault();
-      });
-      return $img;
-    },
-    draggables: [],
-    droppables: ['*']
-  },
-  'placeholdit.image.2': {
-    label: 'Placehold.it Image 2',
-    construct: function () {
-      var $img = $('<img src="http://placehold.it/50x50" />');
-      // prevent image source drag
-      $img.on('dragstart', function (e) {
-        e.preventDefault();
-      });
-      return $img;
-    },
-    draggables: [],
-    droppables: ['*']
-  }
-};
-
-
 var prototyper = {};
 
 
-
 $(function () {
+
+  var componentDefs = {
+    'root': {
+      label: 'Root',
+      hidden: true,
+      construct: function () {
+        return $('<div></div>');
+      },
+      draggables: ['*']
+    },
+    'div': {
+      label: 'Div',
+      construct: function () {
+        return $('<div></div>');
+      },
+      draggables: ['*']
+    },
+    'span': {
+      label: 'Span',
+      construct: function (params) {
+        params = $.extend({
+          text: 'Span'
+        }, params);
+        return $('<span>' + params.text + '</span>');
+      },
+      draggables: ['*']
+    },
+    'zurb-foundation-5.row': {
+      label: 'Row',
+      construct: function () {
+        return $('<div class="row"></div>');
+      },
+      draggables: ['zurb-foundation-5.column'],
+      droppables: ['*']
+    },
+    'zurb-foundation-5.column': {
+      label: 'Column',
+      construct: function () {
+        return $('<div class="column medium-6"></div>');
+      },
+      draggables: ['*'],
+      droppables: ['zurb-foundation-5.row']
+    },
+    'zurb-foundation-5.button': {
+      label: 'Button',
+      construct: function (params) {
+        params = $.extend({
+          text: 'Button'
+        }, params);
+        var $span = createComponent('span', {
+          text: params.text
+        });
+        var $button = $('<button>');
+        $button.append($span);
+        return $button;
+      },
+      draggables: [],
+      droppables: ['*']
+    },
+    'placeholdit.image': {
+      label: 'Placehold.it Image',
+      construct: function () {
+        var $img = $('<img src="http://placehold.it/100x75" />');
+        // prevent image source drag
+        $img.on('dragstart', function (e) {
+          e.preventDefault();
+        });
+        return $img;
+      },
+      draggables: [],
+      droppables: ['*']
+    },
+    'placeholdit.image.2': {
+      label: 'Placehold.it Image 2',
+      construct: function () {
+        var $img = $('<img src="http://placehold.it/50x50" />');
+        // prevent image source drag
+        $img.on('dragstart', function (e) {
+          e.preventDefault();
+        });
+        return $img;
+      },
+      draggables: [],
+      droppables: ['*']
+    }
+  };
 
 
   var $body = $(document.body);
@@ -136,10 +141,10 @@ $(function () {
   };
 
 
-  var bindDraggables = function ($sortable) {
-    if (! $sortable) return;
+  var bindDraggables = function ($draggability) {
+    if (! $draggability) return;
 
-    $sortable.find('[data-component]').each(function () {
+    $draggability.find('[data-component]').each(function () {
       var $el = $(this);
 
       var draggable =  $el.data('draggable');
@@ -460,13 +465,24 @@ $(function () {
   }
 
 
-  var addSortability = function ($sortable) {
+  /**
+   * Check to prevent DOMException HierarchyRequestError.
+   */
+  var canInsertInto = function ($toInsert, $container) {
+    $toInsert = $($toInsert);
+    $container = $($container);
+    var same = $toInsert.is($container);
+    var nested = $container.closest($toInsert).length;
+    var bad = same || nested;
+    return ! bad;
+  };
 
-    // var $sortable = $('<div class="sortable" data-component></div>');
 
-    $sortable.css('position', 'relative');
+  var addDraggability = function ($draggability) {
 
-    $sortable.on('mousemove', function (e) {
+    $draggability.css('position', 'relative');
+
+    $draggability.on('mousemove', function (e) {
 
 
       var $target = $(e.target);
@@ -502,18 +518,7 @@ $(function () {
         method = 'after';
       }
 
-      /**
-       * Check to prevent DOMException HierarchyRequestError.
-       */
-      var canInsertInto = function ($toInsert, $container) {
-        $toInsert = $($toInsert);
-        $container = $($container);
-        var same = $toInsert.is($container);
-        var nested = $container.closest($toInsert).length;
-        var bad = same || nested;
-        return ! bad;
-      };
-
+      console.log('method', method);
 
       if (nearestCorner.insert) {
         method = method === 'before' ? 'prepend' : 'append';
@@ -547,12 +552,12 @@ $(function () {
 
     });
 
-    bindDraggables($sortable);
+    bindDraggables($draggability);
 
   };
 
 
-  addSortability($root);
+  addDraggability($root);
 
 
   $rootContainer.on('click', '[data-component]', function (e) {
