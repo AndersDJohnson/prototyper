@@ -22,7 +22,7 @@ var componentDefs = {
       params = $.extend({
         text: 'Span'
       }, params);
-      return $('<span class="block" data-component>' + params.text + '</span>');
+      return $('<span>' + params.text + '</span>');
     },
     draggables: ['*']
   },
