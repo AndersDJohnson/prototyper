@@ -488,6 +488,13 @@ $(function () {
 
     $draggability.css('position', 'relative');
 
+    // remove draggable on mouseleave
+    $draggability.on('mouseleave', function (e) {
+      if (dragging) {
+        $draggable.remove();
+      }
+    });
+
     $draggability.on('mousemove', function (e) {
 
 
