@@ -155,7 +155,7 @@ $(function () {
       $el.on('mousedown', function (e) {
         // console.log('mousedown');
         e.stopPropagation();
-        console.log('reselect', $el[0], $selectedElement);
+        // console.log('reselect', $el[0], $selectedElement);
         if ($selectedElement && $el.is($selectedElement)) {
           $reselectElement = $el;
         }
@@ -281,7 +281,7 @@ $(function () {
 
   var setSelectedElement = function ($newSelectedElement) {
 
-    console.log('selecting box', $newSelectedElement[0]);
+    // console.log('selecting box', $newSelectedElement[0]);
 
     $reselectElement = null;
 
@@ -512,7 +512,7 @@ $(function () {
       }
 
       // console.log('target', $target[0]);
-      console.log('closest', $closest[0]);
+      // console.log('closest', $closest[0]);
 
       var data = $closest.data('component-data');
       // console.log('data', data);
@@ -521,7 +521,7 @@ $(function () {
       var y = e.pageY;
       var point = {x: x, y: y};
       var nearestCorner = getNearestCorner(point, '[data-component]', $closest);
-      console.log('nearest', nearestCorner)
+      // console.log('nearest', nearestCorner);
 
 
       if (! dragging) {
@@ -537,7 +537,7 @@ $(function () {
         method = 'after';
       }
 
-      console.log('method', method);
+      // console.log('method', method);
 
       if (nearestCorner.insert) {
         method = method === 'before' ? 'prepend' : 'append';
@@ -586,7 +586,7 @@ $(function () {
   $rootContainer.on('click', '[data-component]', function (e) {
     var $target = $(e.target);
     var $this = $(this);
-    console.log('click');
+    // console.log('click');
     e.stopPropagation();
     if ($this.is('[data-component]')) {
       setSelectedElement($this);
@@ -624,7 +624,7 @@ $(function () {
     var $target = $(e.target);
     $draggable = $target;
     var data = $draggable.data('component-data');
-    console.log(data);
+    // console.log(data);
     var $component = createComponent(data.name);
     setDragging($component);
   });
